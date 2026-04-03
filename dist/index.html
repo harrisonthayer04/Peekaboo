@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peekaboo</title>
+  <script type="module" crossorigin src="/assets/index-DN2RsW9l.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BLEmEWsH.css">
+</head>
+<body>
+
+  <!-- API Key Modal -->
+  <div id="api-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#D97757" stroke-width="1.5">
+          <path d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25z"/>
+        </svg>
+      </div>
+      <h2>Welcome to Peekaboo</h2>
+      <p class="modal-subtitle">Enter your OpenRouter API key to get started. Your key is stored locally and never sent to any server besides OpenRouter.</p>
+      <div class="modal-input-group">
+        <input type="password" id="api-key-input" placeholder="sk-or-..." autocomplete="off" />
+        <button id="api-key-submit">Start Session</button>
+      </div>
+      <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="modal-link">Get an API key from OpenRouter &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+
+    <!-- Camera Panel -->
+    <div class="camera-panel">
+      <video id="webcam" autoplay playsinline muted></video>
+      <canvas id="capture-canvas" class="hidden"></canvas>
+
+      <!-- Camera placeholder (shown when camera is off) -->
+      <div id="camera-placeholder" class="camera-placeholder">
+        <div class="placeholder-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.2">
+            <path d="M15.75 10.5l4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9A2.25 2.25 0 0 0 13.5 5.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z"/>
+          </svg>
+        </div>
+        <p class="placeholder-text">Camera is off</p>
+        <p class="placeholder-subtext">Enable camera to share visual context</p>
+      </div>
+
+      <!-- Status badges -->
+      <div class="status-badges">
+        <div id="live-badge" class="badge badge-live hidden">
+          <div class="badge-dot dot-green"></div>
+          Live
+        </div>
+        <div class="badge badge-model clickable" id="badge-model">
+          <span id="model-name">qwen3.6-plus</span>
+        </div>
+      </div>
+
+      <!-- Thinking indicator -->
+      <div id="thinking-badge" class="thinking-badge hidden">
+        <div class="badge-dot dot-orange blink"></div>
+        Thinking...
+      </div>
+
+      <!-- AI Avatar badge -->
+      <div id="ai-avatar" class="ai-avatar">
+        <div id="avatar-glow" class="avatar-glow"></div>
+        <div class="avatar-bg"></div>
+        <div class="avatar-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#D97757"/>
+            <circle cx="9" cy="10" r="1.5" fill="#1a1a1a"/>
+            <circle cx="15" cy="10" r="1.5" fill="#1a1a1a"/>
+            <path d="M8 14.5c0 0 1.5 2 4 2s4-2 4-2" stroke="#1a1a1a" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Camera controls -->
+      <div class="camera-controls">
+        <button id="btn-camera" class="control-btn" title="Toggle camera">
+          <svg id="icon-camera-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+            <path d="M15.75 10.5l4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9A2.25 2.25 0 0 0 13.5 5.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z"/>
+          </svg>
+          <svg id="icon-camera-off" class="hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+            <path d="M15.75 10.5l4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9A2.25 2.25 0 0 0 13.5 5.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25z"/>
+            <line x1="2" y1="2" x2="22" y2="22" stroke="#ff4444" stroke-width="2"/>
+          </svg>
+        </button>
+        <button id="btn-snapshot" class="control-btn" title="Take snapshot">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+            <path d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316z"/>
+            <path d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0z"/>
+          </svg>
+        </button>
+        <button id="btn-end" class="control-btn control-btn-end" title="End session">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <path d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="chat-panel">
+      <div class="chat-header">
+        <span class="chat-title">Chat</span>
+        <div id="msg-count" class="msg-count">0 messages</div>
+      </div>
+
+      <div id="chat-messages" class="chat-messages">
+        <div class="msg-system">
+          <div class="msg-bubble-system">Session started</div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <div id="snapshot-preview" class="snapshot-preview hidden">
+          <img id="snapshot-preview-img" src="" alt="snapshot preview" />
+          <button id="snapshot-preview-dismiss" class="snapshot-dismiss" title="Remove snapshot">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+              <path d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off" />
+          <button id="btn-send" class="btn-send" title="Send">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="quick-actions">
+          <button class="pill" id="pill-snapshot">Snapshot</button>
+          <button class="pill" id="pill-model">Model: qwen3.6-plus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Picker Modal -->
+  <div id="model-modal" class="modal-overlay hidden">
+    <div class="modal modal-sm">
+      <h2>Switch Model</h2>
+      <p class="modal-subtitle">Enter any OpenRouter model ID (e.g. <code>google/gemini-2.0-flash-001</code>)</p>
+      <div class="modal-input-group">
+        <input type="text" id="model-input" placeholder="qwen/qwen3.6-plus:free" autocomplete="off" />
+        <button id="model-submit">Switch</button>
+      </div>
+      <p class="modal-current">Current: <span id="model-current-display">qwen/qwen3.6-plus:free</span></p>
+    </div>
+  </div>
+
+  <!-- Image Lightbox with Drawing -->
+  <div id="lightbox" class="lightbox-overlay hidden">
+    <div class="lightbox-toolbar">
+      <!-- Drawing tools -->
+      <button class="lb-btn active" id="lb-tool-draw" title="Draw">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+      </button>
+      <button class="lb-btn" id="lb-tool-erase" title="Eraser">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.8-9.8c1-1 2.5-1 3.4 0l5.7 5.7c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+      </button>
+
+      <div class="lb-separator"></div>
+
+      <!-- Colors -->
+      <button class="lb-color-swatch active" data-color="#e24b4a" style="background:#e24b4a" title="Red"></button>
+      <button class="lb-color-swatch" data-color="#4ade80" style="background:#4ade80" title="Green"></button>
+      <button class="lb-color-swatch" data-color="#378ADD" style="background:#378ADD" title="Blue"></button>
+      <button class="lb-color-swatch" data-color="#facc15" style="background:#facc15" title="Yellow"></button>
+      <button class="lb-color-swatch" data-color="#ffffff" style="background:#ffffff" title="White"></button>
+
+      <div class="lb-separator"></div>
+
+      <!-- Brush sizes -->
+      <button class="lb-size-btn" data-size="2" title="Thin">
+        <svg width="6" height="6"><circle cx="3" cy="3" r="2" fill="#aaa"/></svg>
+      </button>
+      <button class="lb-size-btn active" data-size="4" title="Medium">
+        <svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="#aaa"/></svg>
+      </button>
+      <button class="lb-size-btn" data-size="8" title="Thick">
+        <svg width="16" height="16"><circle cx="8" cy="8" r="7" fill="#aaa"/></svg>
+      </button>
+
+      <div class="lb-separator"></div>
+
+      <!-- Undo -->
+      <button class="lb-btn" id="lb-undo" title="Undo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button class="lb-btn" id="lb-clear" title="Clear drawings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      </button>
+    </div>
+
+    <div class="lightbox-canvas-wrap">
+      <canvas id="lb-canvas"></canvas>
+    </div>
+
+    <div class="lightbox-actions">
+      <button class="lb-action-btn secondary" id="lb-close">Close</button>
+      <button class="lb-action-btn primary" id="lb-reattach">Reattach to chat</button>
+    </div>
+  </div>
+
+</body>
+</html>
